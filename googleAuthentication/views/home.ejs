@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Hello Ji Nice You have done It</h1>
+    <%if(!currUser){%>
+    <form method="get" action='/signUp'>
+        <button>signUp</button>
+    </form>
+    
+    <form method="get" action="log-in">
+        <button>log in</button>
+    </form>
+    <form method="get" action="/auth/google">
+        <button>loginWithGoogle</button>
+    </form>
+
+    <%}else{%>
+        <form method="get" action="/log-out">
+            <button>log out</button>
+        </form>
+    <%}%>
+</body>
+</html>
