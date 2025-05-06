@@ -1,5 +1,4 @@
 
-
 if(process.env.NODE_ENV != "production"){
   require('dotenv').config();
   console.log("nice");
@@ -17,6 +16,7 @@ const User = require("./models/user");
 const flash = require('connect-flash');
 const { access } = require('fs');
 const googleStrategy = require('passport-google-oauth2').Strategy;
+const GitHubStrategy = require('passport-github2').Strategy;
 
 app.set("view engine", "ejs");
 app.engine("ejs", ejsMate);
@@ -98,6 +98,44 @@ async (accessToken, refreshToken, profile, done) => {
     return done(err, null);
   }
 }));
+
+passport.use(new GitHubStrategy({
+  clientID: process.env.GITHUB_CLIENT_ID,
+  clientSecret: process.env.GITHUB_CLIENT_SECRET,
+  callbackURL: "/auth/github/callback"
+},
+async (accessToken, refreshToken, profile, done) => {
+  try {
+    const email = profile.emails?.[0]?.value || `${profile.username}@github.com`; // fallback
+    let user = await User.findOne({ githubId: profile.id });
+
+    if (user) {
+      return done(null, user);
+    }
+
+    user = await User.findOne({ email });
+
+    if (user) {
+      user.githubId = profile.id;
+      await user.save();
+      return done(null, user);
+    }
+
+    const newUser = new User({
+      username: profile.username,
+      email,
+      githubId: profile.id
+    });
+
+    await newUser.save();
+    return done(null, newUser);
+  } catch (err) {
+    return done(err, null);
+  }
+}));
+
+
+
 // Server listener
 app.listen(8080, () => {
   console.log("hello ji");
@@ -109,7 +147,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/signUp',(req,res)=>{
-    console.log("Chutiya");
+    
     res.render('index.ejs');
 });
 
@@ -148,6 +186,19 @@ app.get('/auth/google/callback',
     res.redirect('/');
 });
 
+
+
+app.get('/auth/github',
+    passport.authenticate('github', { scope: ['user:email'] })
+);
+ 
+
+app.get('/auth/github/callback',
+  passport.authenticate('github', { failureRedirect: '/log-in', failureFlash: true }),
+  (req, res) => {
+    req.flash('success', 'Logged in with GitHub!');  
+    res.redirect('/');
+});
 
 app.get('/log-out',(req,res,next)=>{
   req.logout((err)=>{

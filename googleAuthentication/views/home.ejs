@@ -15,10 +15,12 @@
     <form method="get" action="log-in">
         <button>log in</button>
     </form>
-    <form method="get" action="/auth/google">
+    <form method="get" action="auth/google">
         <button>loginWithGoogle</button>
     </form>
-
+    <form method="get" action="auth/github">
+            <button>loginWithGitHub</button>
+    </form>
     <%}else{%>
         <form method="get" action="/log-out">
             <button>log out</button>
